@@ -1,46 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-// List of public paths that don't require authentication
-const publicPaths = ['/login', '/register', '/', '/service'];
+export async function middleware(req) {
+  const token = await getToken({ req });
+  if (!token && req.nextUrl.pathname.startsWith("/booking"))
+    return NextResponse.redirect(new URL("/login", req.url));
 
-// Middleware function
-export function middleware(request) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if the path is public
-  const isPublicPath = publicPaths.some(path => 
-    pathname === path || pathname.startsWith(path + '/')
-  );
-  
-  // Get auth token from cookies
-  const token = request.cookies.get('auth-token')?.value;
-  
-  // If trying to access private route without token, redirect to login
-  if (!isPublicPath && !token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-  
-  // If already logged in and trying to access auth pages, redirect to home
-  if (token && (pathname === '/login' || pathname === '/register')) {
-    return NextResponse.redirect(new URL('/', request.url));
-  }
-  
-  return NextResponse.next();
+  if (!token && req.nextUrl.pathname.startsWith("/my-bookings"))
+    return NextResponse.redirect(new URL("/login", req.url));
 }
-
-// Configure which paths the middleware should run on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico, sitemap.xml, robots.txt
-     * - public folder files
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|images/).*)',
-  ],
-};
