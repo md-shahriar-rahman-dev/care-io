@@ -31,24 +31,24 @@ export default function MyBookingsPage() {
   }, []);
 
   const fetchBookings = async () => {
-    try {
-      setLoading(true);
-      setError("");
-      const res = await fetch("/api/bookings");
-      
-      if (!res.ok) {
-        throw new Error("Failed to fetch bookings");
-      }
-      
-      const data = await res.json();
-      setBookings(data);
-    } catch (err) {
-      setError("Failed to load bookings. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setError("");
+    const res = await fetch("/api/bookings/my");
+    
+    if (!res.ok) {
+      throw new Error("Failed to fetch bookings");
     }
-  };
+    
+    const data = await res.json();
+    setBookings(data);
+  } catch (err) {
+    setError("Failed to load bookings. Please try again.");
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+};
 
   const cancelBooking = async (id) => {
     const confirm = window.confirm("Are you sure you want to cancel this booking?");
