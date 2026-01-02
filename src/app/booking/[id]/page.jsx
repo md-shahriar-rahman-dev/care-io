@@ -14,15 +14,15 @@ import {
   FaHome,
   FaCheckCircle
 } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 export default function BookingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
- const rawId = params?.id;
-const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
+  const rawId = params?.id;
+  const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
 
-  
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
   const [booking, setBooking] = useState({
@@ -38,7 +38,6 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
     notes: ""
   });
 
-  // Bangladeshi divisions and districts data
   const divisions = [
     "Dhaka", "Chattogram", "Rajshahi", "Khulna", 
     "Barishal", "Sylhet", "Rangpur", "Mymensingh"
@@ -56,18 +55,23 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
   };
 
   useEffect(() => {
-  if (!serviceId) return;
-  fetchService();
-}, [serviceId]);
-
+    if (!serviceId) return;
+    fetchService();
+  }, [serviceId]);
 
   const fetchService = async () => {
     try {
       const res = await fetch(`/api/services/${serviceId}`);
+      if (!res.ok) {
+        toast.error("Service not found or failed to fetch.");
+        setService(null);
+        return;
+      }
       const data = await res.json();
       setService(data);
     } catch (error) {
-      
+      toast.error("Failed to load service: " + error.message);
+      setService(null);
     } finally {
       setLoading(false);
     }
@@ -75,7 +79,7 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name.startsWith("location.")) {
       const locationField = name.split(".")[1];
       setBooking(prev => ({
@@ -95,23 +99,25 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
 
   const calculateTotalCost = () => {
     if (!service) return 0;
-    
     const dailyRate = service.pricePerDay || 0;
     let total = 0;
-    
     if (booking.durationType === "hours") {
       const hourlyRate = Math.round(dailyRate / 8);
       total = hourlyRate * booking.duration;
     } else {
       total = dailyRate * booking.duration;
     }
-    
     return total;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
+    if (!session || !session.user) {
+      toast.error("You must be logged in to make a booking.");
+      return;
+    }
+
     const bookingData = {
       serviceId,
       userId: session.user.id,
@@ -129,18 +135,17 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
         body: JSON.stringify(bookingData)
       });
 
+      const data = await res.json();
+
       if (res.ok) {
-        // Send email invoice (optional)
         await sendEmailInvoice(bookingData);
-        
-        alert("Booking confirmed! Check your email for invoice.");
+        toast.success("Booking confirmed! Check your email for invoice.");
         router.push("/my-bookings");
       } else {
-        alert("Booking failed. Please try again.");
+        toast.error(data.message || "Booking failed. Please try again.");
       }
     } catch (error) {
-      
-      alert("Error creating booking.");
+      toast.error("Error creating booking: " + error.message);
     }
   };
 
@@ -157,7 +162,7 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
         })
       });
     } catch (error) {
-     
+      toast.error("Failed to send invoice email: " + error.message);
     }
   };
 
@@ -180,7 +185,10 @@ const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
         <div className="min-h-screen flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-2xl font-bold mb-4">Service Not Found</h1>
-            <button onClick={() => router.push("/services")} className="bg-green-600 text-white px-6 py-3 rounded-lg">
+            <button 
+              onClick={() => router.push("/services")} 
+              className="bg-green-600 text-white px-6 py-3 rounded-lg"
+            >
               Browse Services
             </button>
           </div>
