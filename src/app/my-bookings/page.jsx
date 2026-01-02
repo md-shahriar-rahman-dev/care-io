@@ -34,7 +34,7 @@ export default function MyBookingsPage() {
   try {
     setLoading(true);
     setError("");
-    const res = await fetch("/api/bookings/my");
+    const res = await fetch("/api/bookings");
     
     if (!res.ok) {
       throw new Error("Failed to fetch bookings");

@@ -5,32 +5,37 @@ import mongoose from "mongoose";
 
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    
+    const { id } = await params;
     
     // Validate MongoDB ID
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return NextResponse.json(
-        { message: "Invalid service ID" },
+        { error: "Invalid service ID" }, 
         { status: 400 }
       );
     }
 
     await connectDB();
-    
+
     const service = await Service.findById(id);
-    
+
     if (!service) {
       return NextResponse.json(
-        { message: "Service not found" },
+        { error: "Service not found" }, 
         { status: 404 }
       );
     }
 
-    return NextResponse.json(service);
+    // Convert to plain object and ensure price is a number
+    const serviceData = service.toObject ? service.toObject() : service;
+    serviceData.pricePerDay = Number(serviceData.pricePerDay) || 0;
+
+    return NextResponse.json(serviceData);
   } catch (error) {
     console.error("Service fetch error:", error);
     return NextResponse.json(
-      { message: "Internal server error" },
+      { error: "Internal server error" }, 
       { status: 500 }
     );
   }

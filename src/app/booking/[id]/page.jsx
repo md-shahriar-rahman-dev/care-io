@@ -19,7 +19,9 @@ export default function BookingPage() {
   const { data: session } = useSession();
   const router = useRouter();
   const params = useParams();
-  const serviceId = params.id;
+ const rawId = params?.id;
+const serviceId = Array.isArray(rawId) ? rawId[0] : rawId;
+
   
   const [service, setService] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -54,8 +56,10 @@ export default function BookingPage() {
   };
 
   useEffect(() => {
-    fetchService();
-  }, [serviceId]);
+  if (!serviceId) return;
+  fetchService();
+}, [serviceId]);
+
 
   const fetchService = async () => {
     try {

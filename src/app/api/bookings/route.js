@@ -3,62 +3,40 @@ import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db";
 import Booking from "@/models/Booking";
 import Service from "@/models/Service";
+import User from "@/models/User";
 import { authOptions } from "@/lib/authOptions";
-
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    await connectDB();
-    
-    const bookings = await Booking.find({ user: session.user.id })
-      .populate("service", "name image category pricePerDay")
-      .sort({ createdAt: -1 });
-
-    return NextResponse.json(bookings);
-  } catch (error) {
-    console.error("Bookings fetch error:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
-  }
-}
+import mongoose from "mongoose";
 
 export async function POST(request) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json(
-        { message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
+    if (!session) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
     const body = await request.json();
     const { serviceId, duration, durationType, location, totalCost, notes } = body;
 
+    if (!mongoose.Types.ObjectId.isValid(serviceId))
+      return NextResponse.json({ message: "Invalid service ID" }, { status: 400 });
+
     await connectDB();
+
+    // Get the user's MongoDB ID
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) return NextResponse.json({ message: "User not found" }, { status: 404 });
 
     // Verify service exists
     const service = await Service.findById(serviceId);
-    if (!service) {
-      return NextResponse.json(
-        { message: "Service not found" },
-        { status: 404 }
-      );
+    if (!service) return NextResponse.json({ message: "Service not found" }, { status: 404 });
+
+    // Validate location
+    const requiredLocationFields = ["division", "district", "city", "area", "address"];
+    for (const field of requiredLocationFields) {
+      if (!location?.[field] || location[field].trim() === "")
+        return NextResponse.json({ message: `Location ${field} is required` }, { status: 400 });
     }
 
     const booking = await Booking.create({
-      user: session.user.id,
+      user: user._id,
       service: serviceId,
       duration,
       durationType,
@@ -66,21 +44,16 @@ export async function POST(request) {
       totalCost,
       notes,
       status: "Pending",
-      bookingDate: new Date()
+      bookingDate: new Date(),
     });
 
     return NextResponse.json(
-      { 
-        message: "Booking created successfully", 
-        bookingId: booking._id 
-      },
+      { message: "Booking created successfully", bookingId: booking._id },
       { status: 201 }
     );
   } catch (error) {
     console.error("Booking creation error:", error);
-    return NextResponse.json(
-      { message: "Internal server error" },
-      { status: 500 }
-    );
+    if (error.errors) console.error("Validation errors:", error.errors);
+    return NextResponse.json({ message: "Internal server error" }, { status: 500 });
   }
 }

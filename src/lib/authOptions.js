@@ -1,6 +1,6 @@
 import GoogleProvider from "next-auth/providers/google";
 import GithubProvider from "next-auth/providers/github";
-import FacebookProvider from "next-auth/providers/facebook";
+
 import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/db";
 import User from "@/models/User";
