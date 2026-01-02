@@ -9,6 +9,7 @@ const nextConfig = {
       'res.cloudinary.com',
       'lh3.googleusercontent.com',
       'platform-lookaside.fbsbx.com',
+      'images.unsplash.com',
     ],
     formats: ['image/avif', 'image/webp'],
   },

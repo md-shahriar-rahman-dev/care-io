@@ -1,6 +1,7 @@
 import ServiceCard from "@/components/ServiceCard";
 import Link from "next/link";
 import { FaStar, FaCheckCircle, FaShieldAlt, FaUsers } from "react-icons/fa";
+import HeroSlider from "@/components/HeroSlider";
 
 export const metadata = {
   title: "Care.IO | Trusted Care Services in Bangladesh",
@@ -25,38 +26,14 @@ async function getServices() {
 }
 
 export default async function HomePage() {
-  const services = await getServices();
+  const services = (await getServices()).slice(0, 6);
+
 
   return (
     <main className="min-h-screen">
-      {/* Hero Banner / Slider */}
-      <section className="relative bg-gradient-to-r from-green-600 to-teal-600 text-white py-24 px-4 overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center relative z-10">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
-            Professional Care Services for Your Loved Ones
-          </h1>
-          <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto opacity-90">
-            Trusted baby care, elderly support, and specialized nursing services across Bangladesh
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/services"
-              className="bg-white text-green-700 font-semibold px-8 py-3 rounded-lg hover:bg-green-50 transition duration-300 transform hover:scale-105"
-            >
-              View All Services
-            </Link>
-            <Link 
-              href="/booking"
-              className="bg-transparent border-2 border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white hover:text-green-700 transition duration-300"
-            >
-              Book Now
-            </Link>
-          </div>
-        </div>
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-64 h-64 bg-green-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
-      </section>
+      {/* Hero Slider */}
+      <HeroSlider />
+
 
       {/* Success Metrics */}
       <section className="bg-gray-50 py-12">
