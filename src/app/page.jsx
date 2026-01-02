@@ -254,7 +254,7 @@ export default async function HomePage() {
               Sign Up Free
             </Link>
             <Link 
-              href="/contact"
+              href="https://www.facebook.com/SRTdarkhunter007"
               className="bg-transparent border-2 border-white text-white font-semibold px-8 py-3 rounded-lg hover:bg-white hover:text-green-700 transition duration-300"
             >
               Contact Us

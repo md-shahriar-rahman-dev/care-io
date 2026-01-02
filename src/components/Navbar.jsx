@@ -70,10 +70,18 @@ export default function Navbar() {
             ) : session ? (
               <div className="flex items-center space-x-4">
                 {/* Notification Bell */}
-                <button className="relative p-2 text-gray-600 hover:text-green-600 transition-colors">
-                  <FaBell className="text-lg" />
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                <button className="relative group p-2 text-gray-600 hover:text-green-600 transition-colors">
+  <FaBell className="text-lg" />
+
+  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 
+                   bg-black text-white text-xs px-2 py-1 rounded 
+                   opacity-0 group-hover:opacity-100 transition">
+    Notifications
+  </span>
+
+  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+</button>
+
 
                 {/* User Profile Dropdown */}
                 <div className="relative group">
