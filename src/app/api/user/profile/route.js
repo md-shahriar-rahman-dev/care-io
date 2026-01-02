@@ -16,7 +16,7 @@ export async function GET() {
     }
 
     await connectDB();
-    const user = await User.findById(session.user.id).select("-password");
+const user = await User.findOne({ email: session.user.email }).select("-password");
 
     if (!user) {
       return NextResponse.json(

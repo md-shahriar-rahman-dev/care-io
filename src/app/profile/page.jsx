@@ -22,6 +22,7 @@ import {
 } from "react-icons/fa";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
+
 export default function ProfilePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
