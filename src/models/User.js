@@ -3,99 +3,69 @@ import bcrypt from "bcryptjs";
 
 const UserSchema = new mongoose.Schema(
   {
-    name: {
+    name: { type: String, required: true, trim: true },
+    email: {
       type: String,
-      required: true,
-      trim: true
-    },
-    email: { 
-      type: String, 
       unique: true,
       required: true,
       lowercase: true,
-      trim: true
+      trim: true,
     },
     password: {
       type: String,
-      required: function() {
-        return !this.googleId; // Only required for non-Google users
-      }
+      required: function () {
+        return !this.googleId;
+      },
     },
     nid: {
       type: String,
-      required: function() {
-        return !this.googleId; // Only required for non-Google users
+      required: function () {
+        return !this.googleId;
       },
-      trim: true
+      trim: true,
     },
-    contact: {
+    contact: { type: String, trim: true },
+    googleId: { type: String, sparse: true },
+    image: String,
+    role: {
       type: String,
-      trim: true
-    },
-    googleId: {
-      type: String,
-      sparse: true // Allows null values while maintaining uniqueness
-    },
-    image: {
-      type: String
-    },
-    role: { 
-      type: String, 
       default: "user",
-      enum: ["user", "admin"]
+      enum: ["user", "admin"],
     },
-    emailVerified: {
-      type: Boolean,
-      default: false
-    },
-    phoneVerified: {
-      type: Boolean,
-      default: false
-    },
-    nidVerified: {
-      type: Boolean,
-      default: false
-    },
+    emailVerified: { type: Boolean, default: false },
+    phoneVerified: { type: Boolean, default: false },
+    nidVerified: { type: Boolean, default: false },
     status: {
       type: String,
       default: "active",
-      enum: ["active", "suspended", "deleted"]
+      enum: ["active", "suspended", "deleted"],
     },
-    lastLogin: {
-      type: Date
-    },
+    lastLogin: Date,
     resetPasswordToken: String,
-    resetPasswordExpires: Date
+    resetPasswordExpires: Date,
   },
-  { 
-    timestamps: true // This adds createdAt and updatedAt automatically
-  }
+  { timestamps: true }
 );
 
-// Hash password before saving
-UserSchema.pre("save", async function(next) {
-  if (!this.isModified("password")) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+// ✅ FIXED PASSWORD HASHING
+UserSchema.pre("save", async function () {
+  if (!this.isModified("password")) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
-// Compare password method
-UserSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
+// Compare password
+UserSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Virtual for formatted createdAt
-UserSchema.virtual("joinedDate").get(function() {
+// Virtual field
+UserSchema.virtual("joinedDate").get(function () {
   return this.createdAt.toLocaleDateString("en-BD", {
     year: "numeric",
     month: "long",
-    day: "numeric"
+    day: "numeric",
   });
 });
 

@@ -111,8 +111,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // After successful registration, redirect to login with a success message
-        // or directly login and redirect to booking page as per requirement
+        
         router.push("/login?registered=true&redirect=/");
       } else {
         setError(data.message || "Registration failed. Please try again.");

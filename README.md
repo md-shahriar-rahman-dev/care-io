@@ -17,7 +17,6 @@ A modern web application for booking professional care services including baby c
 - **Frontend**: Next.js 16, React 19, JSX
 - **Styling**: Tailwind CSS v4
 - **Authentication**: Custom auth with middleware
-- **Email**: EmailJS integration
 - **Deployment**: Ready for Vercel
 
 ## 📦 Installation

@@ -76,7 +76,7 @@ model Service {
   slug        String    @unique
   description String
   longDescription String?
-  price       Float
+  pricePerDay       Float
   duration    String    @default("per hour")
   category    Category
   image       String?

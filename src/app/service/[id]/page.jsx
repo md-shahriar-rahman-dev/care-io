@@ -74,7 +74,8 @@ export default async function ServiceDetailPage({ params }) {
   }
 
   // FIX: Safe price calculation with fallbacks
-  const pricePerDay = service.pricePerDay || service.price || 0;
+  const pricePerDay = Number(service?.pricePerDay ?? 0);
+
   const hourlyRate = pricePerDay > 0 ? Math.round(pricePerDay / 8) : 0;
   
   // FIX: Check if price is valid
