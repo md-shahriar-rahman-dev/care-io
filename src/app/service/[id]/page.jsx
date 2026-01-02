@@ -39,7 +39,7 @@ export async function generateMetadata({ params }) {
 
 // ===== Page =====
 export default async function ServiceDetailPage({ params }) {
-  // Await the params to unwrap the Promise
+  
   const { id } = await params;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {

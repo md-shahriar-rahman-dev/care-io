@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   
   const [formData, setFormData] = useState({
@@ -41,54 +41,35 @@ export default function RegisterPage() {
         lowercase: /[a-z]/.test(value)
       });
     }
-
-    setError("");
   };
 
-  const validateNID = (nid) => {
-    // Bangladeshi NID validation (10 or 13 or 17 digits)
-    const nidRegex = /^(?:\d{10}|\d{13}|\d{17})$/;
-    return nidRegex.test(nid);
-  };
-
-  const validatePassword = (password) => {
-    return (
-      password.length >= 6 &&
-      /[A-Z]/.test(password) &&
-      /[a-z]/.test(password)
-    );
-  };
+  const validateNID = (nid) => /^(?:\d{10}|\d{13}|\d{17})$/.test(nid);
+  const validatePassword = (password) =>
+    password.length >= 6 && /[A-Z]/.test(password) && /[a-z]/.test(password);
+  const validatePhone = (phone) => /^(?:\+88|01[3-9])[0-9]{8}$/.test(phone);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
-    // Validate NID
+    // Validate inputs
     if (!validateNID(formData.nid)) {
-      setError("Please enter a valid Bangladeshi NID (10, 13, or 17 digits)");
+      toast.error("Please enter a valid Bangladeshi NID (10, 13, or 17 digits)");
       setLoading(false);
       return;
     }
-
-    // Validate password
     if (!validatePassword(formData.password)) {
-      setError("Password must be at least 6 characters with uppercase and lowercase letters");
+      toast.error("Password must be at least 6 characters with uppercase and lowercase letters");
       setLoading(false);
       return;
     }
-
-    // Check password match
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       setLoading(false);
       return;
     }
-
-    // Validate contact (Bangladeshi phone number)
-    const phoneRegex = /^(?:\+88|01[3-9])[0-9]{8}$/;
-    if (!phoneRegex.test(formData.contact)) {
-      setError("Please enter a valid Bangladeshi phone number (e.g., 01712345678 or +8801712345678)");
+    if (!validatePhone(formData.contact)) {
+      toast.error("Please enter a valid Bangladeshi phone number (e.g., 01712345678)");
       setLoading(false);
       return;
     }
@@ -96,39 +77,31 @@ export default function RegisterPage() {
     try {
       const res = await fetch("/api/register", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          nid: formData.nid,
-          email: formData.email,
-          contact: formData.contact,
-          password: formData.password
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        
+        toast.success("Account created successfully!");
         router.push("/login?registered=true&redirect=/");
       } else {
-        setError(data.message || "Registration failed. Please try again.");
+        toast.error(data.message || "Registration failed. Please try again.");
       }
     } catch (err) {
-      setError("Network error. Please check your connection.");
+      toast.error("Network error. Please check your connection.");
     } finally {
       setLoading(false);
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  const togglePasswordVisibility = () => setShowPassword(!showPassword);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <Toaster position="top-right" reverseOrder={false} />
+
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -141,13 +114,6 @@ export default function RegisterPage() {
             </Link>
           </p>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-            {error}
-          </div>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -168,7 +134,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* NID Number */}
+            {/* NID */}
             <div>
               <label htmlFor="nid" className="block text-sm font-medium text-gray-700 mb-1">
                 NID Number <span className="text-red-500">*</span>
@@ -181,13 +147,8 @@ export default function RegisterPage() {
                 value={formData.nid}
                 onChange={handleChange}
                 className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="Enter your Bangladeshi NID (10/13/17 digits)"
-                pattern="\d{10}|\d{13}|\d{17}"
-                title="10, 13, or 17 digit NID number"
+                placeholder="Enter your Bangladeshi NID"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Format: 10, 13, or 17 digits (e.g., 1234567890)
-              </p>
             </div>
 
             {/* Email */}
@@ -207,7 +168,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            {/* Contact Number */}
+            {/* Contact */}
             <div>
               <label htmlFor="contact" className="block text-sm font-medium text-gray-700 mb-1">
                 Contact Number <span className="text-red-500">*</span>
@@ -220,13 +181,8 @@ export default function RegisterPage() {
                 value={formData.contact}
                 onChange={handleChange}
                 className="appearance-none relative block w-full px-3 py-2.5 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 sm:text-sm"
-                placeholder="e.g., 01712345678 or +8801712345678"
-                pattern="(\+88)?01[3-9]\d{8}"
-                title="Bangladeshi phone number (e.g., 01712345678)"
+                placeholder="e.g., 01712345678"
               />
-              <p className="mt-1 text-xs text-gray-500">
-                Bangladeshi phone number format
-              </p>
             </div>
 
             {/* Password */}
@@ -251,34 +207,8 @@ export default function RegisterPage() {
                   onClick={togglePasswordVisibility}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  {showPassword ? (
-                    <FaEyeSlash className="h-5 w-5 text-gray-400" />
-                  ) : (
-                    <FaEye className="h-5 w-5 text-gray-400" />
-                  )}
+                  {showPassword ? <FaEyeSlash className="h-5 w-5 text-gray-400" /> : <FaEye className="h-5 w-5 text-gray-400" />}
                 </button>
-              </div>
-              
-              {/* Password Requirements */}
-              <div className="mt-2 space-y-1">
-                <div className="flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${passwordErrors.length ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className={`text-xs ${passwordErrors.length ? 'text-green-600' : 'text-gray-500'}`}>
-                    At least 6 characters
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${passwordErrors.uppercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className={`text-xs ${passwordErrors.uppercase ? 'text-green-600' : 'text-gray-500'}`}>
-                    At least one uppercase letter (A-Z)
-                  </span>
-                </div>
-                <div className="flex items-center">
-                  <div className={`w-2 h-2 rounded-full mr-2 ${passwordErrors.lowercase ? 'bg-green-500' : 'bg-gray-300'}`}></div>
-                  <span className={`text-xs ${passwordErrors.lowercase ? 'text-green-600' : 'text-gray-500'}`}>
-                    At least one lowercase letter (a-z)
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -301,7 +231,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          {/* Terms and Conditions */}
+          {/* Terms */}
           <div className="flex items-start">
             <div className="flex items-center h-5">
               <input
@@ -315,13 +245,9 @@ export default function RegisterPage() {
             <div className="ml-3 text-sm">
               <label htmlFor="terms" className="font-medium text-gray-700">
                 I agree to the{" "}
-                <a href="/terms" className="text-green-600 hover:text-green-500">
-                  Terms of Service
-                </a>{" "}
+                <a href="/terms" className="text-green-600 hover:text-green-500">Terms of Service</a>{" "}
                 and{" "}
-                <a href="/privacy" className="text-green-600 hover:text-green-500">
-                  Privacy Policy
-                </a>
+                <a href="/privacy" className="text-green-600 hover:text-green-500">Privacy Policy</a>
               </label>
             </div>
           </div>
@@ -334,25 +260,13 @@ export default function RegisterPage() {
                 loading ? 'bg-green-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
               }`}
             >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Creating Account...
-                </span>
-              ) : (
-                "Create Account"
-              )}
+              {loading ? "Creating Account..." : "Create Account"}
             </button>
           </div>
         </form>
 
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
-            By registering, you agree to provide accurate information as per Bangladeshi regulations.
-          </p>
+        <div className="text-center mt-4 text-sm text-gray-600">
+          By registering, you agree to provide accurate information as per Bangladeshi regulations.
         </div>
       </div>
     </div>

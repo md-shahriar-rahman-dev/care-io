@@ -47,7 +47,7 @@ export default function MyBookingsPage() {
     const data = await res.json();
     setBookings(data);
   } catch (err) {
-    setError("Failed to load bookings. Please try again.");
+     toast.error("Failed to load bookings. Please try again.");
   
   } finally {
     setLoading(false);
@@ -71,12 +71,13 @@ export default function MyBookingsPage() {
       setBookings(prev =>
         prev.map(b => b._id === id ? { ...b, status: "Cancelled" } : b)
       );
-      toast.success(data.message) // You can replace alert with toast.success(data.message)
+      toast.success(data.message) 
     } else {
-      alert(data.message || "Failed to cancel booking"); // show API message
+      toast.error(data.message || "Failed to cancel booking.");
     }
   } catch (err) {
     console.error(err);
+    toast.error("Something went wrong while cancelling the booking. Please try again.");
     
   }
 };
@@ -388,7 +389,7 @@ export default function MyBookingsPage() {
 
                         {booking.status === "Completed" && (
                           <button
-                            onClick={() => alert("Invoice feature coming soon!")}
+                            onClick={() => toast("Invoice feature coming soon!", { icon: "ℹ️" })}
                             className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition"
                           >
                             <FaFileInvoice />

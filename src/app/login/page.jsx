@@ -4,12 +4,11 @@ import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { FaFacebook } from "react-icons/fa";
 import Link from "next/link";
+import toast, { Toaster } from "react-hot-toast";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,13 +20,11 @@ export default function LoginPage() {
       ...prev,
       [name]: value
     }));
-    setError(""); // Clear error when user types
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const result = await signIn("credentials", {
@@ -37,13 +34,13 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        toast.error("Invalid email or password. Please try again.");
       } else {
-        // Redirect to home page or previous page
+        toast.success("Login successful!");
         window.location.href = "/";
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -54,13 +51,16 @@ export default function LoginPage() {
     try {
       await signIn(provider, { callbackUrl: "/" });
     } catch (err) {
-      setError(`Failed to login with ${provider}. Please try again.`);
+      toast.error(`Failed to login with ${provider}. Please try again.`);
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      {/* Toaster Container */}
+      <Toaster position="top-right" reverseOrder={false} />
+
       <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-lg">
         <div>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
@@ -73,13 +73,6 @@ export default function LoginPage() {
             </Link>
           </p>
         </div>
-
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
-            {error}
-          </div>
-        )}
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
@@ -172,7 +165,6 @@ export default function LoginPage() {
           </div>
 
           <div className="mt-6 grid grid-cols-2 gap-3">
-            {/* Google Login */}
             <button
               onClick={() => handleSocialLogin("google")}
               disabled={loading}
@@ -181,7 +173,6 @@ export default function LoginPage() {
               <FcGoogle className="h-5 w-5" />
             </button>
 
-            {/* GitHub Login (Optional) */}
             <button
               onClick={() => handleSocialLogin("github")}
               disabled={loading}
@@ -189,15 +180,6 @@ export default function LoginPage() {
             >
               <FaGithub className="h-5 w-5 text-gray-800" />
             </button>
-
-            {/* Facebook Login (Optional) */}
-            {/* <button
-              onClick={() => handleSocialLogin("facebook")}
-              disabled={loading}
-              className="w-full inline-flex justify-center py-2.5 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              <FaFacebook className="h-5 w-5 text-blue-600" />
-            </button> */}
           </div>
         </div>
 
